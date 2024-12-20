@@ -8,9 +8,9 @@ typedef struct {
     int tamanho;
 } AreaLivre;
 
-int heap[TAMANHO_HEAP] = {0}; // Simulando a memÛria do heap
-AreaLivre areasLivres[TAMANHO_HEAP]; // Lista de ·reas livres
-int totalAreasLivres = 1; // Inicialmente, toda a memÛria est· livre
+int heap[TAMANHO_HEAP] = {0}; // Simulando a mem√≥ria do heap
+AreaLivre areasLivres[TAMANHO_HEAP]; // Lista de √°reas livres
+int totalAreasLivres = 1; // Inicialmente, toda a mem√≥ria est√° livre
 
 void inicializarHeap() {
     areasLivres[0].inicio = 0;
@@ -34,29 +34,44 @@ void exibirAreasLivres() {
 }
 
 void alocarMemoria(int tamanho, bool firstFit) {
+    int indiceMelhorArea = -1; // √çndice da melhor √°rea livre para aloca√ß√£o
+    int menorTamanho = TAMANHO_HEAP + 1; // Inicialize com um valor maior que qualquer √°rea poss√≠vel
+
     for (int i = 0; i < totalAreasLivres; i++) {
         if (areasLivres[i].tamanho >= tamanho) {
-            printf("Alocando %d unidades na area iniciada em %d\n", tamanho, areasLivres[i].inicio);
-            // Aloca memÛria no heap
-            for (int j = 0; j < tamanho; j++) {
-                heap[areasLivres[i].inicio + j] = 1;
-            }
-            // Atualiza a lista de ·reas livres
-            areasLivres[i].inicio += tamanho;
-            areasLivres[i].tamanho -= tamanho;
-            if (areasLivres[i].tamanho == 0) {
-                for (int k = i; k < totalAreasLivres - 1; k++) {
-                    areasLivres[k] = areasLivres[k + 1];
+            if (firstFit) {
+                // Para First Fit, use a primeira √°rea suficiente
+                indiceMelhorArea = i;
+                break;
+            } else {
+                // Para Best Fit, encontre a menor √°rea suficiente
+                if (areasLivres[i].tamanho < menorTamanho) {
+                    menorTamanho = areasLivres[i].tamanho;
+                    indiceMelhorArea = i;
                 }
-                totalAreasLivres--;
             }
-            return;
-        }
-        if (!firstFit) {
-            break; // Best Fit verifica apenas a primeira ·rea suficiente
         }
     }
-    printf("Erro: Memoria insuficiente para alocar %d unidades!\n", tamanho);
+
+    // Verifica se encontrou uma √°rea adequada
+    if (indiceMelhorArea != -1) {
+        printf("Alocando %d unidades na area iniciada em %d\n", tamanho, areasLivres[indiceMelhorArea].inicio);
+        // Aloca mem√≥ria no heap
+        for (int j = 0; j < tamanho; j++) {
+            heap[areasLivres[indiceMelhorArea].inicio + j] = 1;
+        }
+        // Atualiza a lista de √°reas livres
+        areasLivres[indiceMelhorArea].inicio += tamanho;
+        areasLivres[indiceMelhorArea].tamanho -= tamanho;
+        if (areasLivres[indiceMelhorArea].tamanho == 0) {
+            for (int k = indiceMelhorArea; k < totalAreasLivres - 1; k++) {
+                areasLivres[k] = areasLivres[k + 1];
+            }
+            totalAreasLivres--;
+        }
+    } else {
+        printf("Erro: Memoria insuficiente para alocar %d unidades!\n", tamanho);
+    }
 }
 
 void liberarMemoria(int inicio, int tamanho) {
@@ -64,11 +79,11 @@ void liberarMemoria(int inicio, int tamanho) {
     for (int i = inicio; i < inicio + tamanho; i++) {
         heap[i] = 0;
     }
-    // Adiciona a ·rea liberada na lista de ·reas livres
+    // Adiciona a √°rea liberada na lista de √°reas livres
     areasLivres[totalAreasLivres].inicio = inicio;
     areasLivres[totalAreasLivres].tamanho = tamanho;
     totalAreasLivres++;
-    // Organiza a lista de ·reas livres
+    // Organiza a lista de √°reas livres
     for (int i = 0; i < totalAreasLivres - 1; i++) {
         for (int j = 0; j < totalAreasLivres - i - 1; j++) {
             if (areasLivres[j].inicio > areasLivres[j + 1].inicio) {
